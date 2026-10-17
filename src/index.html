@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Soporty Agente</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="logo"></div>
+    <div class="ttl"><b id="title">Soporty Agente</b><small id="sub">Equipo administrado</small></div>
+  </header>
+
+  <!-- Registro del equipo -->
+  <section class="card" id="panelSetup" hidden>
+    <h2>Registrar este equipo</h2>
+    <p class="muted">Pega el <b>código de alta</b> que generaste en tu panel, en <span class="mono">Mis equipos</span>.</p>
+    <input id="enroll" class="code" maxlength="20" placeholder="Código de alta" autocomplete="off" autocapitalize="characters">
+    <div id="setupErr" class="err" hidden></div>
+    <button id="btnEnroll" class="btn block">Registrar equipo</button>
+    <details class="srv"><summary>Servidor</summary>
+      <input id="server" class="inp mono" placeholder="https://soporty.com">
+      <small class="muted">Déjalo así salvo que uses otra dirección.</small>
+    </details>
+    <p class="muted tiny">Una vez registrado, este equipo quedará disponible para recibir soporte. Cada conexión pide el PIN del equipo y, mientras te controlen, se ve una barra roja que cualquiera puede detener.</p>
+  </section>
+
+  <!-- Equipo en funcionamiento -->
+  <section id="panelRunning" hidden>
+    <div class="status" id="status"><span class="dot"></span><span id="statusText">Iniciando…</span></div>
+
+    <div class="card">
+      <div class="req"><span>Equipo</span><b id="devName">—</b></div>
+      <div class="req"><span>Servidor</span><b id="devServer" class="mono tiny">—</b></div>
+      <div class="req"><span>Arranque con Windows</span><b id="devAuto">activado</b></div>
+    </div>
+
+    <div class="card" id="captureBox" hidden>
+      <b>Permitir ver la pantalla</b>
+      <p class="muted tiny">Este equipo necesita autorizar la captura de pantalla una vez. Haz clic y elige «Toda la pantalla».</p>
+      <button id="btnCapture" class="btn block">Autorizar captura de pantalla</button>
+    </div>
+
+    <div class="card">
+      <b>Actividad</b>
+      <div id="log" class="chatlog"></div>
+    </div>
+
+    <div class="row" style="gap:8px">
+      <button id="btnMin" class="btn sec block" style="margin:0">Minimizar</button>
+      <button id="btnReset" class="btn ghost block" style="margin:0;color:var(--danger)">Quitar registro</button>
+    </div>
+  </section>
+</div>
+
+<audio id="ra" autoplay></audio>
+<script src="rtc.js"></script>
+<script src="agent.js"></script>
+</body>
+</html>
