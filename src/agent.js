@@ -210,9 +210,15 @@
 
   /* ---- control remoto: se concede automáticamente (equipo administrado) ---- */
   /* ---- marcas del técnico (puntero y trazos) sobre el escritorio ---- */
-  var annReady = null;
-  function annShow() { if (!invoke) return Promise.resolve(); if (!annReady) annReady = invoke('ann_show').catch(function (e) { annReady = null; logLine('No se pudo mostrar las marcas: ' + errText(e)); }); return annReady; }
-  function annHide() { annReady = null; if (invoke) invoke('ann_hide').catch(function () {}); }
+  var annAt = 0;
+  function annShow() {
+    if (!invoke) return Promise.resolve();
+    var now = Date.now();
+    if (now - annAt < 800) return Promise.resolve();   // ya se pidió hace un instante
+    annAt = now;
+    return invoke('ann_show').catch(function (e) { annAt = 0; logLine('Marcas desactivadas: ' + errText(e)); });
+  }
+  function annHide() { annAt = 0; if (invoke) invoke('ann_hide').catch(function () {}); }
   function annPush(m) { annShow().then(function () { if (invoke) invoke('ann_push', { m: m }).catch(function () {}); }); }
 
   function onCtl(m) {
