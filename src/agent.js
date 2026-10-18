@@ -88,7 +88,7 @@
   /* ---- registro ---- */
   async function enroll() {
     $('setupErr').hidden = true;
-    const tok = $('enroll').value.trim();
+    const tok = $('enroll').value.toUpperCase().replace(/[^A-Z0-9]/g, '');   // acepta guion/espacios/minúsculas
     SERVER = ($('server').value.trim() || DEFAULT_SERVER).replace(/\/+$/, ''); SP.base = SERVER;
     if (!tok) return setupErr('Pega el código de alta.');
     $('btnEnroll').disabled = true;
