@@ -15,15 +15,20 @@
   let DEV = null;            // { id, token, name }  registro del equipo
   let SESSAUTH = null;       // "id:token" de la sesión en curso (cliente)
 
-  /* ---- fetch: URL absoluta + cabeceras de Soporty + auth de equipo/sesión ---- */
+  /* ---- fetch: solo las peticiones a NUESTRO servidor reciben cabeceras y URL absoluta.
+   *      Las llamadas internas de Tauri (http://ipc.localhost, tauri.localhost) y cualquier
+   *      otro origen pasan intactas: si las tocáramos, Tauri perdería su Tauri-Invoke-Key. ---- */
   const rawFetch = window.fetch.bind(window);
   window.fetch = function (url, init) {
-    init = init || {};
     let u = typeof url === 'string' ? url : (url && url.url) || '';
-    if (!/^https?:/.test(u)) u = SERVER + '/' + String(u).replace(/^\//, '');
-    const h = Object.assign({}, init.headers || {}, { 'X-Soporty': '1' });
-    if (DEV) h['X-Device-Auth'] = DEV.id + ':' + DEV.token;       // api/agent.php
-    if (SESSAUTH) h['X-Client-Auth'] = SESSAUTH;                   // api/rtc.php
+    const absolute = /^https?:\/\//i.test(u);
+    if (absolute && u.indexOf(SERVER) !== 0) return rawFetch(url, init);   // Tauri u otros orígenes: no tocar
+    if (!absolute) u = SERVER + '/' + String(u).replace(/^\//, '');
+    init = Object.assign({}, init || {});
+    const h = new Headers(init.headers || undefined);
+    h.set('X-Soporty', '1');
+    if (DEV) h.set('X-Device-Auth', DEV.id + ':' + DEV.token);       // api/agent.php
+    if (SESSAUTH) h.set('X-Client-Auth', SESSAUTH);                  // api/rtc.php
     init.headers = h;
     return rawFetch(u, init);
   };
