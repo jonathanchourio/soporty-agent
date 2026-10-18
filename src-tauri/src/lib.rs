@@ -266,6 +266,17 @@ fn ann_push(app: AppHandle, m: serde_json::Value) {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        // Una sola instancia: si el agente ya corre (p. ej. arrancó con Windows) y se
+        // vuelve a abrir, solo se trae al frente la ventana existente. Dos instancias
+        // polleando a la vez hacían que una tomara la conexión y la otra se quedara
+        // «esperando», sin pantalla ni control visibles.
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            if let Some(w) = app.get_webview_window("main") {
+                let _ = w.unminimize();
+                let _ = w.show();
+                let _ = w.set_focus();
+            }
+        }))
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             Some(vec![]),
