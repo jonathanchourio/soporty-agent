@@ -83,10 +83,9 @@ fn rc_screen(app: AppHandle) -> (u32, u32) {
 }
 
 #[tauri::command]
-fn rc_start(app: AppHandle) {
-    CONTROLLING.store(true, Ordering::SeqCst);
+fn rc_start(app: AppHandle) -> Result<(), String> {
     if app.get_webview_window("overlay").is_none() {
-        let _ = WebviewWindowBuilder::new(&app, "overlay", WebviewUrl::App("overlay.html".into()))
+        WebviewWindowBuilder::new(&app, "overlay", WebviewUrl::App("overlay.html".into()))
             .title("Soporty")
             .inner_size(380.0, 54.0)
             .decorations(false)
@@ -94,8 +93,11 @@ fn rc_start(app: AppHandle) {
             .skip_taskbar(true)
             .resizable(false)
             .shadow(true)
-            .build();
+            .build()
+            .map_err(|e| format!("No se pudo mostrar la barra de aviso: {e}"))?;
     }
+    CONTROLLING.store(true, Ordering::SeqCst);
+    Ok(())
 }
 
 #[tauri::command]

@@ -214,14 +214,18 @@
   async function grantControl() {
     if (!invoke) { if (room) room.ctl({ t: 'rc-denied', why: 'sin soporte nativo' }); return; }
     if (!screen) { await startShare(false); if (!screen) { room.ctl({ t: 'rc-denied', why: 'sin pantalla' }); return; } }
-    try {
-      const sz = await invoke('rc_screen'); screenW = sz[0] || 1920; screenH = sz[1] || 1080;
-      await invoke('rc_start');
-      controlling = true;
-      room.ctl({ t: 'rc-granted' });
-      logLine('El técnico tomó el control del equipo.');
-    } catch (e) { room.ctl({ t: 'rc-denied' }); logLine('No se pudo iniciar el control.'); }
+    const dpr = window.devicePixelRatio || 1;
+    let sz = null;
+    try { sz = await invoke('rc_screen'); } catch (e) { logLine('Aviso: tamaño de pantalla desde el WebView (' + errText(e) + ').'); }
+    screenW = (sz && sz[0]) || Math.round(screen.width * dpr) || 1920;
+    screenH = (sz && sz[1]) || Math.round(screen.height * dpr) || 1080;
+    try { await invoke('rc_start'); }
+    catch (e) { room.ctl({ t: 'rc-denied' }); logLine('No se pudo iniciar el control: ' + errText(e)); return; }
+    controlling = true;
+    room.ctl({ t: 'rc-granted' });
+    logLine('El técnico tomó el control del equipo (' + screenW + '×' + screenH + ').');
   }
+  function errText(e) { try { return (e && (e.message || (typeof e === 'string' ? e : JSON.stringify(e)))) || 'error desconocido'; } catch (x) { return 'error desconocido'; } }
 
   function onControlStopped() { controlling = false; inBuf = []; if (room) room.ctl({ t: 'rc-stopped' }); logLine('El control se detuvo.'); }
 
