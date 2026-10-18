@@ -173,6 +173,7 @@
   async function endSession() {
     if (ended) return; ended = true;
     if (controlling && invoke) invoke('rc_stop');
+    annHide();
     if (screen) { try { screen.stop(); } catch (e) {} screen = null; }
     if (room) { try { room.stop(); } catch (e) {} room = null; }
     SESSAUTH = null; controlling = false; inBuf = [];
@@ -194,7 +195,7 @@
     try {
       const s = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 15, max: 30 }, displaySurface: 'monitor' }, audio: false });
       const track = s.getVideoTracks()[0]; try { track.contentHint = 'detail'; } catch (e) {}
-      screen = track; track.onended = () => { screen = null; if (room) { room.setTrack('video', null); room.ctl({ t: 'screen', on: false }); } };
+      screen = track; track.onended = () => { screen = null; annHide(); if (room) { room.setTrack('video', null); room.ctl({ t: 'screen', on: false }); } };
       await room.setTrack('video', track);
       room.ctl({ t: 'screen', on: true });
       $('captureBox').hidden = true;
@@ -208,8 +209,15 @@
   }
 
   /* ---- control remoto: se concede automáticamente (equipo administrado) ---- */
+  /* ---- marcas del técnico (puntero y trazos) sobre el escritorio ---- */
+  var annReady = null;
+  function annShow() { if (!invoke) return Promise.resolve(); if (!annReady) annReady = invoke('ann_show').catch(function (e) { annReady = null; logLine('No se pudo mostrar las marcas: ' + errText(e)); }); return annReady; }
+  function annHide() { annReady = null; if (invoke) invoke('ann_hide').catch(function () {}); }
+  function annPush(m) { annShow().then(function () { if (invoke) invoke('ann_push', { m: m }).catch(function () {}); }); }
+
   function onCtl(m) {
     const t = m.t;
+    if (t === 'ptr' || t === 'stroke' || t === 'clear') { if (screen) annPush(m); return; }
     if (t === 'rc-request') { grantControl(); return; }
     if (t === 'rc-release') { if (controlling && invoke) invoke('rc_stop'); return; }
     if (t === 'hi' && m.name) { if (room) room.techName = m.name; return; }
